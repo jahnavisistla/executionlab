@@ -59,6 +59,18 @@ Then open `dashboard_interactive.html`. I haven't included the vendor-derived ag
 
 I've also added `quote_analysis.py` for backward timestamp joins and quoted/effective spread calculations. Real quote records are not bundled, so I haven't presented quote-based results as observed findings.
 
+## Quote sample and research design
+
+I also tested a basic limit-order-book replay using Cboe's downloadable 2020 Trades & Quotes sample. `cboe_sample_book.py` reconstructs top-of-book quotes from visible order messages; `quote_sample_report.py` produces a short spread summary. This is a useful first empirical quote check, but not a certified exchange book reconstruction. The sample is from **1 September 2020**, so I haven't joined it to the 2026 trade files.
+
+The next stage is defined in [STUDY_DESIGN.md](STUDY_DESIGN.md): specific hypotheses, quote-quality rules, time-alignment conventions, statistics and conditions under which I would *not* make a performance claim. That plan applies to future data collection, not retroactively to the initial exploratory results.
+
+To recreate the sample quote summary after downloading Cboe's permitted Trades & Quotes sample:
+
+```bash
+python3 quote_sample_report.py path/to/cboe_taq_sample.zip
+```
+
 ## How I'm thinking about the analysis
 
 The distinction between **observed market activity** and **simulated execution** is important here.
