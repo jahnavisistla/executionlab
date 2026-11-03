@@ -17,3 +17,5 @@ synthetic_orders.csv
 # Vendor-derived data and local aggregate outputs may require licensing review
 ui_data.json
 scenario_data.json
+
+dashboard_interactive.html
