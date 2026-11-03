@@ -1,61 +1,67 @@
-# ExecutionLab — Synthetic TCA & European Equity Microstructure
+# ExecutionLab
 
-Independent portfolio mini-study by Jahnavi Sistla (November 2026).
+A small research project I'm building to explore transaction cost analysis (TCA), execution strategies and European equity market microstructure.
 
-## What this demonstrates
+I work on electronic trading systems, so I'm interested in what happens beyond routing an order: how execution quality is measured, how market conditions affect trading costs, and how to evaluate whether a change in execution strategy actually helps.
 
-- Correctly signed arrival-price execution shortfall for buy and sell orders.
-- Reproducible Python analytics and order-level data generation.
-- Segmentation by stylised trading-session and venue regimes.
-- Awareness of European equity market microstructure and selection-bias limitations.
-- Clear separation of simulation results from real market claims.
+ExecutionLab brings together a Python TCA calculation engine, a set of execution simulations and an analysis of public European equity trade data. It's a work in progress, not a production trading system.
 
-## Run
+## What's here
 
-`python3 analysis.py`
+- **TCA engine** (`tca_engine.py`) — models parent orders and fills, and calculates arrival-price implementation shortfall, opportunity cost on unfilled shares, fees, fill rate and VWAP slippage. It also includes effective and realised spread formulas for use when matched quote data is available.
+- **Market data analysis** (`real_market_study.py`) — reads Cboe Europe delayed trade CSVs and calculates trade counts, volumes, trade VWAP and a trade-price variability measure.
+- **Execution strategy experiment** (`strategy_study.py`) — compares immediate, TWAP-style and volume-adaptive schedules. The market trade-price/volume path is observed; the client order and fills are simulated.
+- **Interactive dashboard** (`dashboard.html`) — brings together the reports, an editable TCA calculator and the methodology notes.
+- **Tests** (`test_tca_engine.py`) — covers buy/sell sign conventions, partial and unfilled orders, fees and invalid fills.
 
-Open `research_report.html` in a browser. The generated `synthetic_orders.csv` provides 2,400 simulated records. Python standard library only.
+## Data
 
-## Caveat
+For the initial market-data study, I used Cboe Europe's public delayed trade files for BXE, CXE and DXE from **2 November 2026, 13:00–14:00 UTC**.
 
-**All observations are synthetic.** The assumptions build cost relationships into the simulation. Findings are tests of analytical methods, not empirical conclusions about European markets or specific trading venues. No employer data, code or client information is used.
+The analysis processed 301,871 valid trade records across 2,651 ISIN/currency pairs. That's a useful starting sample, but only one hour of trading — it isn't representative of the whole European equity market.
 
-## Additional real-market-data module (ExecutionLab 2.0)
+The raw Cboe files aren't included in this repository because market data is subject to provider usage and redistribution terms. The source is [Cboe Europe MiFID public trade data](https://www.cboe.com/europe/equities/trade_data).
 
-`real_market_study.py` independently analyses a Cboe Europe delayed public trade CSV supplied by the researcher. It produces `observed_trade_report.html` with observed trade counts, instrument-level VWAP, volumes and a trade-price variability proxy. This is a separate empirical *trade-activity* analysis; it must not be confused with client TCA.
+There's also a separate synthetic dataset generator (`analysis.py`) used to exercise the original shortfall calculations. Its results should not be interpreted as empirical market findings.
 
-An example source file is the Cboe Europe MiFID public trade file for CXE, 2 November 2026 at 13:00 UTC. **Raw Cboe market data is deliberately excluded from the distributed project**. Data is subject to Cboe's non-commercial-use conditions: https://www.cboe.com/europe/equities/trade_data
+## Running it locally
 
-Run the module with `python3 real_market_study.py /path/to/your_downloaded_cboe_file.csv`.
+Python 3 is sufficient; the analysis scripts use the standard library.
 
-## TCA 3.0 engine and controlled strategy experiment
+```bash
+# Run the TCA unit tests
+python3 -m unittest discover -p 'test_*.py'
 
-- `tca_engine.py`: typed parent-order/fill structures; direction-aware implementation shortfall, residual opportunity cost, explicit fees, fill rate, VWAP slippage; optional effective/realised-spread formulas when **genuine matched quote data** exists.
-- `test_tca_engine.py`: unit tests for full/partial/unfilled orders, both sides, fee logic and invalid fills.
-- `strategy_study.py`: compares immediate, TWAP-style and previous-volume-adaptive simulated execution schedules using **observed** Cboe trade-price/volume paths but **hypothetical** parent orders, fill capacities, spreads and impact.
-- `strategy_report.html`: generated strategy experiment, with assumptions and limitations prominently identified.
+# Generate the synthetic-data research report
+python3 analysis.py
 
-Run from this directory:
+# Analyse downloaded Cboe trade files
+python3 real_market_study.py path/to/bxe.csv path/to/cxe.csv path/to/dxe.csv
 
+# Run the simulated execution-strategy comparison
+python3 strategy_study.py path/to/bxe.csv path/to/cxe.csv path/to/dxe.csv
 ```
-python3 -m unittest test_tca_engine.py
-python3 strategy_study.py /path/to/cboe_bxe.csv /path/to/cboe_cxe.csv /path/to/cboe_dxe.csv
-```
 
-Do not pass observed exchange trades off as fills of a real customer order. Quotes, order book, multiple days and robust strategy validation remain necessary before claiming empirical strategy performance.
+Open `dashboard.html` in a browser. The observed-market and strategy tabs display the HTML reports generated by the scripts.
 
-## Interactive dashboard
+## How I'm thinking about the analysis
 
-Open `dashboard.html` next to the generated HTML reports. Its five tabs cover the overview, observed trades, a live editable TCA workbench, execution strategy experiments and methodological limitations. It runs locally without a server, external JavaScript dependencies or an account.
+The distinction between **observed market activity** and **simulated execution** is important here.
 
-## Next steps for a genuine empirical study
+Public trade prints let me study traded prices, volumes and activity patterns. They don't tell me what bid/ask liquidity was available when an order arrived, or how an actual client order was filled. For that, I'd need time-aligned quotes, market depth and order/fill records.
 
-1. Acquire properly licensed historical European equity trade/quote data.
-2. Join order and market-data timestamps; account for clock precision and corporate actions.
-3. Calculate effective/quoted spreads, VWAP, arrival-price shortfall and fees.
-4. Compare venues or order schedules with appropriate controls for market conditions and order-selection bias.
-5. Add confidence intervals, out-of-sample tests, reproducible research notes and a concise client-facing summary.
+The strategy experiment therefore uses explicit assumptions about participation limits, spread and market impact. It's useful for testing the accounting and comparison workflow, but it isn't evidence that one live execution strategy outperforms another.
 
-## CV wording (only after independently running and understanding this work)
+A few things I'd like to build out next:
 
-"Built a reproducible Python TCA research prototype using 2,400 synthetic equity orders, measuring signed arrival-price shortfall and evaluating simulated relationships between execution cost, liquidity proxies and participation rates; documented market-microstructure assumptions and validation limitations."
+1. Add historical quote data and calculate quoted/effective spreads with proper timestamp alignment.
+2. Extend the analysis across multiple sessions, instruments and market regimes.
+3. Improve the fill and impact model, then test sensitivity to its assumptions.
+4. Compare strategies out of sample and quantify uncertainty rather than relying on a single scenario.
+5. Make the dashboard more useful for drilling into individual orders and execution decisions.
+
+The aim is to make the methodology auditable and the conclusions defensible, rather than just produce attractive charts.
+
+## Notes
+
+This is an independent research project. It doesn't use Citi systems, client information, proprietary code or internal market data. It is not investment advice.
