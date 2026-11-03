@@ -11,3 +11,7 @@ __pycache__/
 
 # Generated synthetic data may be regenerated from analysis.py
 synthetic_orders.csv
+
+# Vendor-derived data and local aggregate outputs may require licensing review
+ui_data.json
+scenario_data.json
