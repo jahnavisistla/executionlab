@@ -4,7 +4,7 @@
 
 I work on electronic trading systems, so I wanted to follow an order beyond the point where it gets routed. How much did it cost to trade? What happens if the order never finishes? Could the same execution look good against one benchmark and expensive against another? That’s what transaction cost analysis (TCA) helps explain.
 
-![ExecutionLab dashboard overview showing the market observations, TCA workbench and strategy experiment](docs/screenshots/overview.png)
+The main application is `dashboard.html`, a self-contained research workspace with a guided overview, Market Explorer, TCA Workbench, Strategy Lab and methodology notes.
 
 ## One order tells the story
 
@@ -18,15 +18,32 @@ Imagine I want to **buy 1,000 shares** when the stock is at **£100.00**. Only *
 
 One basis point (bp) is 0.01%. The same order can beat VWAP on the executed shares and still cost more than the arrival benchmark once the unfinished shares and fees are included.
 
-![TCA workbench showing the example buy order, 60 percent fill rate, 14.50 basis points of shortfall and negative VWAP slippage](docs/screenshots/tca-workbench.png)
 
-## Try it locally
 
-Open `dashboard.html` in a browser and select **TCA workbench**. Enter the example above, then change the end price and see which metrics move. The dashboard also links to the bundled market and strategy reports. Python 3 is enough to run the tests and regenerate the synthetic report.
+## Open the application
+
+The standard dashboard works offline, immediately after cloning. You don't need to install packages, start a server or download market files to explore it.
+
+```bash
+git clone https://github.com/jahnavisistla/executionlab.git
+cd executionlab
+open dashboard.html       # macOS; alternatively double-click the file
+```
+
+Use the left navigation:
+
+1. **Overview** explains the research and walks through a 1,000-share order.
+2. **Market Explorer** filters the observed *aggregated* trade sample by instrument and currency; rows can be inspected and exported to CSV.
+3. **TCA Workbench** is an interactive hypothetical-order calculator with BUY/SELL, quantity, fill, benchmark and fee inputs.
+4. **Strategy Lab** compares the published simulation summaries for immediate, TWAP-style and adaptive schedules.
+5. **Methodology** explains observed versus simulated inputs, assumptions and validation limits.
+
+These screens use the published summary metrics and an interactive calculator. Individual raw Cboe trade records are not bundled; to reproduce deeper time-series studies, download permitted market data and follow the reproduction steps below.
+
+Check the analytics code with:
 
 ```bash
 python3 -m unittest discover -p 'test_*.py'
-python3 analysis.py
 ```
 
 ## How the project works
