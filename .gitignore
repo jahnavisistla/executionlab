@@ -2,6 +2,8 @@
 cboe_*.csv
 raw_data/
 downloads/
+cboe_taq_sample.zip
+*.csv.gz
 
 # Local caches and runtime outputs
 __pycache__/
