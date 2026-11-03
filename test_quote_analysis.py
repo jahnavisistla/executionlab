@@ -1,4 +1,3 @@
-import csv
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,6 +14,28 @@ class QuoteTests(unittest.TestCase):
             self.assertEqual(len(joined),1)
             self.assertAlmostEqual(joined[0]["quoted_spread_bps"],20)
             self.assertAlmostEqual(joined[0]["effective_spread_bps"],20)
+
+    def test_latest_equal_timestamp_update_wins(self):
+        with tempfile.TemporaryDirectory() as root:
+            quotes = Path(root) / "quotes.csv"
+            trades = Path(root) / "trades.csv"
+            quotes.write_text(
+                "timestamp,isin,venue,bid,ask\n"
+                "2026-11-02T13:00:00Z,X,VEN,101,103\n"
+                "2026-11-02T13:00:00Z,X,VEN,99,101\n"
+                "2026-11-02T13:00:00Z,X,VEN,100,100\n"
+                "2026-11-02T13:00:00Z,X,VEN,nan,100\n"
+            )
+            trades.write_text(
+                "timestamp,isin,venue,price,side\n"
+                "2026-11-02T13:00:00Z,X,VEN,101,BUY\n"
+                "2026-11-02T13:00:00Z,X,VEN,inf,BUY\n"
+                "2026-11-02T13:00:00Z,X,VEN,101,\n"
+            )
+            joined = join_trades(trades, load_quotes(quotes))
+            self.assertEqual(len(joined), 2)
+            self.assertAlmostEqual(joined[0]["effective_spread_bps"], 200)
+            self.assertIsNone(joined[1]["effective_spread_bps"])
 
     def test_timezone_is_required(self):
         with self.assertRaises(ValueError):utc_seconds("2026-11-02T13:00:00")
