@@ -6,6 +6,7 @@ Metrics require an actual bid/ask observation at or before each trade.
 """
 import bisect
 import csv
+import re
 import math
 from operator import itemgetter
 from collections import defaultdict
@@ -13,7 +14,11 @@ from datetime import datetime, timezone
 
 
 def utc_seconds(value):
-    dt=datetime.fromisoformat(value.strip().replace("Z","+00:00"))
+    value=value.strip().replace("Z","+00:00")
+    # Older Python versions reject non-padded fractional seconds such as .5.
+    value=re.sub(r"\.(\d{1,6})(?=\+|-|$)",
+                 lambda match: "."+match.group(1).ljust(6,"0"), value)
+    dt=datetime.fromisoformat(value)
     if dt.tzinfo is None:
         raise ValueError("Timestamp must include timezone")
     return dt.astimezone(timezone.utc).timestamp()
