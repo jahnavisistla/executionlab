@@ -1,0 +1,13 @@
+# Vendor-provided market data (not licensed for redistribution)
+cboe_*.csv
+raw_data/
+downloads/
+
+# Local caches and runtime outputs
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+
+# Generated synthetic data may be regenerated from analysis.py
+synthetic_orders.csv
