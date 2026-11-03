@@ -6,6 +6,8 @@ Metrics require an actual bid/ask observation at or before each trade.
 """
 import bisect
 import csv
+import math
+from operator import itemgetter
 from collections import defaultdict
 from datetime import datetime, timezone
 
@@ -22,16 +24,19 @@ def load_quotes(path):
     with open(path,newline="") as f:
         for row in csv.DictReader(f):
             bid,ask=float(row["bid"]),float(row["ask"])
-            if bid<=0 or ask<bid:
+            if not (math.isfinite(bid) and math.isfinite(ask) and 0 < bid < ask):
                 continue
             key=(row["isin"].strip(),row["venue"].strip())
             grouped[key].append((utc_seconds(row["timestamp"]),bid,ask))
-    for rows in grouped.values():rows.sort()
+    # Preserve source order for equal timestamps so the last update wins.
+    for rows in grouped.values():
+        rows.sort(key=itemgetter(0))
     return grouped
 
 
 def join_trades(trade_path, quotes, tolerance_seconds=1.0):
-    if tolerance_seconds<0:raise ValueError("Negative tolerance")
+    if not math.isfinite(tolerance_seconds) or tolerance_seconds < 0:
+        raise ValueError("Tolerance must be finite and non-negative")
     indexes={key:[r[0] for r in rows] for key,rows in quotes.items()}
     metrics=[]
     with open(trade_path,newline="") as f:
@@ -45,6 +50,8 @@ def join_trades(trade_path, quotes, tolerance_seconds=1.0):
             if timestamp-qt>tolerance_seconds:continue
             midpoint=(bid+ask)/2
             price=float(row["price"])
+            if not math.isfinite(price) or price <= 0:
+                continue
             spread=(ask-bid)/midpoint*10000
             side=row.get("side","").strip().upper()
             # Without an independently known aggressor side, effective spread
